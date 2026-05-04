@@ -174,7 +174,7 @@ footer { display: none !important; }
 """
 
 def build_ui():
-    with gr.Blocks(title="📖 AI Handbook Generator", css=CUSTOM_CSS, theme=gr.themes.Soft(primary_hue="violet")) as demo:
+    with gr.Blocks(title="📖 AI Handbook Generator", css=CUSTOM_CSS, theme=gr.themes.Default(primary_hue="purple")) as demo:
 
         session_id = gr.State(str(uuid.uuid4()))
 
