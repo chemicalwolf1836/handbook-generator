@@ -4,11 +4,10 @@ app.py — Main Gradio application for the AI Handbook Generator.
 Run:
     python app.py
 
-Environment variables (set in .env or shell):
-    XAI_API_KEY      — Grok 4.1 API key from x.ai
-    SUPABASE_URL     — Your Supabase project URL
-    SUPABASE_KEY     — Your Supabase anon/service key
-    LIGHTRAG_DIR     — (optional) path for LightRAG storage, default: ./lightrag_storage
+Environment variables (set in .env or HF Spaces secrets):
+    GROQ_API_KEY     — Groq API key from console.groq.com
+    SUPABASE_URL     — Your Supabase project URL (optional)
+    SUPABASE_KEY     — Your Supabase anon/service key (optional)
 """
 import os
 import uuid
@@ -175,7 +174,7 @@ footer { display: none !important; }
 """
 
 def build_ui():
-    with gr.Blocks(title="📖 AI Handbook Generator") as demo:
+    with gr.Blocks(title="📖 AI Handbook Generator", css=CUSTOM_CSS, theme=gr.themes.Soft(primary_hue="violet")) as demo:
 
         session_id = gr.State(str(uuid.uuid4()))
 
@@ -183,7 +182,7 @@ def build_ui():
         gr.Markdown(
             """# 📖 AI Handbook Generator
 > Upload PDFs → Ask questions → Generate 20,000-word handbooks through conversation.
-> Powered by **Grok 4.1** · **LightRAG** · **Supabase** · **LongWriter technique**"""
+> Powered by **Llama 3.3 70B via Groq** · **sentence-transformers** · **LongWriter technique**"""
         )
 
         with gr.Tabs():
@@ -223,7 +222,6 @@ def build_ui():
                 chatbot = gr.Chatbot(
                     label="Conversation",
                     height=500,
-                    buttons=["copy_all"],
                 )
 
                 with gr.Row():
@@ -265,40 +263,16 @@ def build_ui():
                 gr.Markdown("""
 ## Quick Start
 
-### Step 1 — Configure API keys
-Create a `.env` file in the project folder:
+### Step 1 — Configure API key
+Set your Groq API key as an environment variable (or in `.env` locally):
 ```
-XAI_API_KEY=your_grok_api_key_here
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_KEY=your_supabase_anon_key
+GROQ_API_KEY=your_groq_api_key_here
 ```
+Get a free key at [console.groq.com](https://console.groq.com).
 
-### Step 2 — Set up Supabase
-Run this SQL in your Supabase SQL editor:
-```sql
-create extension if not exists vector;
+Supabase is optional — the app works without it using in-memory storage.
 
-create table if not exists documents (
-    id          uuid primary key default gen_random_uuid(),
-    filename    text not null,
-    title       text,
-    pages       int,
-    chunk_index int,
-    content     text not null,
-    embedding   vector(1536),
-    created_at  timestamptz default now()
-);
-
-create table if not exists chat_sessions (
-    id         uuid primary key default gen_random_uuid(),
-    session_id text not null,
-    role       text not null,
-    content    text not null,
-    created_at timestamptz default now()
-);
-```
-
-### Step 3 — Upload & Chat
+### Step 2 — Upload & Chat
 1. Go to **📄 Upload Documents** → select PDF files → click **Index Documents**
 2. Go to **💬 Chat** → ask questions or request a handbook
 
@@ -308,8 +282,8 @@ create table if not exists chat_sessions (
 - *"Write a handbook covering neural network architectures"*
 
 ### How handbook generation works (LongWriter technique)
-1. **Plan** — Grok 4.1 creates a 12-16 section table of contents with word targets
-2. **Write** — Each section is generated individually (~1,500 words each) using LightRAG context
+1. **Plan** — Llama 3.3 70B creates a 12-16 section table of contents with word targets
+2. **Write** — Each section is generated individually (~1,500 words each) using RAG context
 3. **Assemble** — All sections are joined into one 20,000+ word document
 
 The handbook can be downloaded as a Markdown file from the **💬 Chat** tab.
@@ -327,6 +301,4 @@ if __name__ == "__main__":
         server_name="0.0.0.0",
         server_port=int(os.getenv("PORT", 7860)),
         share=False,
-        css=CUSTOM_CSS,
-        theme=gr.themes.Soft(primary_hue="violet"),
     )
