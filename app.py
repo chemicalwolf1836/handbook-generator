@@ -168,8 +168,8 @@ def clear_chat():
 # ------------------------------------------------------------------ #
 
 CUSTOM_CSS = """
-.gradio-container { max-width: 1000px !important; }
-.status-box { font-family: monospace; font-size: 0.85rem; }
+.gradio-container { max-width: 1000px !important; font-family: "SF Pro Mono", ui-monospace, monospace !important; }
+.status-box { font-family: "SF Pro Mono", ui-monospace, monospace; font-size: 0.85rem; }
 footer { display: none !important; }
 .prose h1, .prose h2, .prose h3, .prose p, .prose li,
 .prose blockquote, .prose strong, .prose em, .prose i {
