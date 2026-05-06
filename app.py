@@ -170,7 +170,20 @@ def clear_chat():
 # ------------------------------------------------------------------ #
 
 CUSTOM_CSS = """
-.gradio-container { max-width: 1000px !important; font-family: "SF Pro Mono", ui-monospace, monospace !important; }
+:root {
+  color-scheme: light !important;
+  --background-fill-primary: #f9fafb !important;
+  --background-fill-secondary: #f3f4f6 !important;
+  --block-background-fill: #ffffff !important;
+  --input-background-fill: #ffffff !important;
+  --body-background-fill: #f9fafb !important;
+  --chatbot-background: #f3f4f6 !important;
+  --border-color-primary: #e5e7eb !important;
+  --color-background-primary: #f9fafb !important;
+}
+.gradio-container { max-width: 1000px !important; font-family: "SF Pro Mono", ui-monospace, monospace !important; background: #f9fafb !important; }
+.block, .form, .wrap { background: #ffffff !important; }
+.chatbot, .chatbot .bubble-wrap { background: #f3f4f6 !important; }
 .status-box { font-family: "SF Pro Mono", ui-monospace, monospace; font-size: 0.85rem; }
 footer { display: none !important; }
 .prose h1, .prose h2, .prose h3, .prose p, .prose li,
@@ -182,7 +195,7 @@ button[role="tab"] { color: #374151 !important; opacity: 1 !important; backgroun
 button[role="tab"][aria-selected="true"] { color: #111827 !important; background: transparent !important; }
 button[role="tab"]:hover { color: #7c3aed !important; background: transparent !important; }
 .file-preview, .upload-container, .file-upload, .dnd-container { background: #f9fafb !important; border: 1px dashed #9ca3af !important; }
-#msg-row { align-items: flex-end !important; }
+#msg-row .gap, #msg-row > div { align-items: flex-end !important; }
 #msg-row > div:last-child button { min-height: 66px !important; }
 """
 
