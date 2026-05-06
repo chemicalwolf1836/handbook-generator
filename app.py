@@ -178,6 +178,7 @@ footer { display: none !important; }
 .gradio-markdown, .gradio-markdown * { color: #111827 !important; }
 button[role="tab"] { color: #374151 !important; opacity: 1 !important; }
 button[role="tab"][aria-selected="true"] { color: #111827 !important; }
+button[role="tab"]:hover { color: #ffffff !important; }
 """
 
 def build_ui():
