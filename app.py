@@ -183,6 +183,7 @@ button[role="tab"]:hover { color: #7c3aed !important; background: transparent !i
 #msg-row { align-items: flex-end !important; gap: 8px !important; }
 #msg-row button { min-height: 60px !important; }
 .gradio-container .gap { row-gap: 8px !important; }
+.chatbot, .chatbot .bubble-wrap, .gradio-chatbot { background: #f3f4f6 !important; }
 """
 
 def build_ui():
@@ -249,7 +250,7 @@ def build_ui():
                     clear_btn = gr.Button("🗑️ Clear chat", size="sm")
                     export_btn = gr.Button("💾 Export handbook (.md)", size="sm", variant="secondary")
 
-                export_file = gr.File(label="Download", visible=False)
+                export_file = gr.File(label="Download", visible=True)
                 export_status = gr.Textbox(label="", interactive=False, lines=1)
 
                 # Wiring
