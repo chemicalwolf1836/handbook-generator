@@ -155,8 +155,8 @@ def export_last_handbook(session_id: str):
     """Return path to the last generated handbook file."""
     path = EXPORT_DIR / f"handbook_{session_id[:8]}.md"
     if path.exists():
-        return str(path), f"✅ Ready to download: {path.name}"
-    return None, "⚠️ No handbook generated yet in this session."
+        return gr.update(value=str(path), visible=True), f"✅ Ready to download: {path.name}"
+    return gr.update(visible=False), "⚠️ No handbook generated yet in this session."
 
 
 def clear_chat():
@@ -180,6 +180,9 @@ button[role="tab"] { color: #374151 !important; opacity: 1 !important; backgroun
 button[role="tab"][aria-selected="true"] { color: #111827 !important; background: transparent !important; }
 button[role="tab"]:hover { color: #7c3aed !important; background: transparent !important; }
 .file-preview, .upload-container, .file-upload, .dnd-container { background: #f9fafb !important; border: 1px dashed #9ca3af !important; }
+#msg-row { align-items: flex-end !important; gap: 8px !important; }
+#msg-row button { min-height: 60px !important; }
+.gradio-container .gap { row-gap: 8px !important; }
 """
 
 def build_ui():
@@ -233,7 +236,7 @@ def build_ui():
                     height=500,
                 )
 
-                with gr.Row():
+                with gr.Row(elem_id="msg-row"):
                     msg_box = gr.Textbox(
                         placeholder='Ask a question or say "Create a handbook on Retrieval-Augmented Generation"',
                         label="Your message",
@@ -246,7 +249,7 @@ def build_ui():
                     clear_btn = gr.Button("🗑️ Clear chat", size="sm")
                     export_btn = gr.Button("💾 Export handbook (.md)", size="sm", variant="secondary")
 
-                export_file = gr.File(label="Download", visible=True)
+                export_file = gr.File(label="Download", visible=False)
                 export_status = gr.Textbox(label="", interactive=False, lines=1)
 
                 # Wiring
