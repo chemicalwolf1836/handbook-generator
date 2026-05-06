@@ -168,15 +168,7 @@ def clear_chat():
 # ------------------------------------------------------------------ #
 
 CUSTOM_CSS = """
-:root {
-  --background-fill-primary: #f9fafb !important;
-  --background-fill-secondary: #f3f4f6 !important;
-  --input-background-fill: #ffffff !important;
-  --block-background-fill: #f9fafb !important;
-  --body-background-fill: #f9fafb !important;
-  --chatbot-background: #f3f4f6 !important;
-}
-.gradio-container { max-width: 1000px !important; font-family: "SF Pro Mono", ui-monospace, monospace !important; background: #f9fafb !important; }
+.gradio-container { max-width: 1000px !important; font-family: "SF Pro Mono", ui-monospace, monospace !important; }
 .status-box { font-family: "SF Pro Mono", ui-monospace, monospace; font-size: 0.85rem; }
 footer { display: none !important; }
 .prose h1, .prose h2, .prose h3, .prose p, .prose li,
@@ -188,11 +180,6 @@ button[role="tab"] { color: #374151 !important; opacity: 1 !important; backgroun
 button[role="tab"][aria-selected="true"] { color: #111827 !important; background: transparent !important; }
 button[role="tab"]:hover { color: #7c3aed !important; background: transparent !important; }
 .file-preview, .upload-container, .file-upload, .dnd-container { background: #f9fafb !important; border: 1px dashed #9ca3af !important; }
-#msg-row { align-items: flex-end !important; gap: 8px !important; }
-#msg-row button { min-height: 60px !important; }
-.gradio-container .gap { row-gap: 8px !important; }
-.block, .wrap, .input-wrap { background: #f9fafb !important; }
-.chatbot, .chatbot .bubble-wrap, .gradio-chatbot { background: #f3f4f6 !important; }
 """
 
 def build_ui():
@@ -246,7 +233,7 @@ def build_ui():
                     height=500,
                 )
 
-                with gr.Row(elem_id="msg-row"):
+                with gr.Row():
                     msg_box = gr.Textbox(
                         placeholder='Ask a question or say "Create a handbook on Retrieval-Augmented Generation"',
                         label="Your message",
