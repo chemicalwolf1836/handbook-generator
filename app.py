@@ -155,8 +155,8 @@ def export_last_handbook(session_id: str):
     """Return path to the last generated handbook file."""
     path = EXPORT_DIR / f"handbook_{session_id[:8]}.md"
     if path.exists():
-        return gr.update(value=str(path), visible=True), f"✅ Ready to download: {path.name}"
-    return gr.update(visible=False), "⚠️ No handbook generated yet in this session."
+        return str(path), f"✅ Ready to download: {path.name}"
+    return None, "⚠️ No handbook generated yet in this session."
 
 
 def clear_chat():
@@ -168,7 +168,15 @@ def clear_chat():
 # ------------------------------------------------------------------ #
 
 CUSTOM_CSS = """
-.gradio-container { max-width: 1000px !important; font-family: "SF Pro Mono", ui-monospace, monospace !important; }
+:root {
+  --background-fill-primary: #f9fafb !important;
+  --background-fill-secondary: #f3f4f6 !important;
+  --input-background-fill: #ffffff !important;
+  --block-background-fill: #f9fafb !important;
+  --body-background-fill: #f9fafb !important;
+  --chatbot-background: #f3f4f6 !important;
+}
+.gradio-container { max-width: 1000px !important; font-family: "SF Pro Mono", ui-monospace, monospace !important; background: #f9fafb !important; }
 .status-box { font-family: "SF Pro Mono", ui-monospace, monospace; font-size: 0.85rem; }
 footer { display: none !important; }
 .prose h1, .prose h2, .prose h3, .prose p, .prose li,
@@ -183,6 +191,7 @@ button[role="tab"]:hover { color: #7c3aed !important; background: transparent !i
 #msg-row { align-items: flex-end !important; gap: 8px !important; }
 #msg-row button { min-height: 60px !important; }
 .gradio-container .gap { row-gap: 8px !important; }
+.block, .wrap, .input-wrap { background: #f9fafb !important; }
 .chatbot, .chatbot .bubble-wrap, .gradio-chatbot { background: #f3f4f6 !important; }
 """
 
