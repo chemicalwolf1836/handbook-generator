@@ -179,6 +179,7 @@ footer { display: none !important; }
 button[role="tab"] { color: #374151 !important; opacity: 1 !important; }
 button[role="tab"][aria-selected="true"] { color: #111827 !important; }
 button[role="tab"]:hover { color: #ffffff !important; }
+.file-preview, .upload-container, .file-upload, .dnd-container { background: transparent !important; border: 1px dashed #9ca3af !important; }
 """
 
 def build_ui():
