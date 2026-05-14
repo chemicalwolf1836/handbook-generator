@@ -188,14 +188,18 @@ footer { display: none !important; }
 .prose blockquote, .prose strong, .prose em, .prose i { color: #111827 !important; }
 .gradio-markdown, .gradio-markdown * { color: #111827 !important; }
 button[role="tab"] { color: #374151 !important; opacity: 1 !important; background: transparent !important; }
-button[role="tab"][aria-selected="true"] { color: #111827 !important; background: transparent !important; }
+button[role="tab"][aria-selected="true"] { color: #7c3aed !important; background: transparent !important; border-bottom: 2px solid #7c3aed !important; }
 button[role="tab"]:hover { color: #7c3aed !important; background: transparent !important; }
+button { transition: opacity 0.15s, transform 0.1s !important; }
+button:hover:not(:disabled) { opacity: 0.9 !important; transform: translateY(-1px) !important; }
+.block { box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important; border-radius: 8px !important; }
 .file-preview, .upload-container, .file-upload, .dnd-container { background: #f9fafb !important; border: 1px dashed #9ca3af !important; }
 .file-preview *, .upload-container *, .dnd-container * { color: #374151 !important; }
 textarea::placeholder, input::placeholder { color: #6b7280 !important; opacity: 1 !important; }
 label span, .label-wrap span { color: #374151 !important; }
 #msg-row .gap, #msg-row > div { align-items: flex-end !important; }
 #msg-row > div:last-child button { min-height: 66px !important; }
+#msg-row textarea { font-size: 0.95rem !important; }
 """
 
 def build_ui():
@@ -214,10 +218,7 @@ def build_ui():
 
             # ---- Tab 1: Upload ---- #
             with gr.TabItem("📄 Upload Documents"):
-                gr.Markdown(
-                    "Upload one or more PDF files. The system will extract text and build "
-                    "a knowledge graph using LightRAG."
-                )
+                gr.Markdown("Upload PDFs to index them for Q&A and handbook generation.")
                 file_input = gr.File(
                     label="Select PDF files",
                     file_types=[".pdf"],
@@ -245,22 +246,22 @@ def build_ui():
 
             # ---- Tab 2: Chat ---- #
             with gr.TabItem("💬 Chat & Generate Handbook"):
-                gr.Markdown(
-                    "Ask questions about your documents, or say **'Create a handbook on [topic]'** "
-                    "to generate a 20,000+ word structured document."
-                )
+                gr.Markdown("Ask questions about your documents, or say **'Create a handbook on [topic]'** for a 20,000+ word handbook.")
 
                 chatbot = gr.Chatbot(
                     label="Conversation",
-                    height=500,
+                    height=550,
+                    show_copy_button=True,
+                    render_markdown=True,
                 )
 
                 with gr.Row(elem_id="msg-row"):
                     msg_box = gr.Textbox(
                         placeholder='Ask a question or say "Create a handbook on Retrieval-Augmented Generation"',
-                        label="Your message",
+                        label="",
                         scale=5,
                         lines=2,
+                        max_lines=6,
                     )
                     send_btn = gr.Button("Send ▶", variant="primary", scale=1, min_width=80)
 
