@@ -191,6 +191,9 @@ button[role="tab"] { color: #374151 !important; opacity: 1 !important; backgroun
 button[role="tab"][aria-selected="true"] { color: #111827 !important; background: transparent !important; }
 button[role="tab"]:hover { color: #7c3aed !important; background: transparent !important; }
 .file-preview, .upload-container, .file-upload, .dnd-container { background: #f9fafb !important; border: 1px dashed #9ca3af !important; }
+.file-preview *, .upload-container *, .dnd-container * { color: #374151 !important; }
+textarea::placeholder, input::placeholder { color: #6b7280 !important; opacity: 1 !important; }
+label span, .label-wrap span { color: #374151 !important; }
 #msg-row .gap, #msg-row > div { align-items: flex-end !important; }
 #msg-row > div:last-child button { min-height: 66px !important; }
 """
