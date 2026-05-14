@@ -156,8 +156,8 @@ def export_last_handbook(session_id: str):
     """Return path to the last generated handbook file."""
     path = EXPORT_DIR / f"handbook_{session_id[:8]}.md"
     if path.exists():
-        return str(path), f"✅ Ready to download: {path.name}"
-    return None, "⚠️ No handbook generated yet in this session."
+        return gr.update(value=str(path), visible=True), f"✅ **{path.name}** is ready to download."
+    return gr.update(visible=False), "⚠️ No handbook generated yet in this session."
 
 
 def clear_chat():
@@ -206,7 +206,14 @@ textarea::placeholder, input::placeholder { color: #6b7280 !important; opacity: 
 """
 
 def build_ui():
-    with gr.Blocks(title="📖 AI Handbook Generator", css=CUSTOM_CSS, theme=gr.themes.Default(primary_hue="purple")) as demo:
+    theme = gr.themes.Default(primary_hue="purple").set(
+        input_background_fill="#ffffff",
+        block_background_fill="#ffffff",
+        background_fill_primary="#f9fafb",
+        background_fill_secondary="#f3f4f6",
+        body_background_fill="#f9fafb",
+    )
+    with gr.Blocks(title="📖 AI Handbook Generator", css=CUSTOM_CSS, theme=theme) as demo:
 
         session_id = gr.State(str(uuid.uuid4()))
 
@@ -272,9 +279,8 @@ def build_ui():
                     clear_btn = gr.Button("🗑️ Clear chat", size="sm")
                     export_btn = gr.Button("💾 Export handbook (.md)", size="sm", variant="secondary")
 
-                with gr.Row():
-                    export_file = gr.File(label="Download", scale=1, elem_id="download-file")
-                    export_status = gr.Textbox(label="", interactive=False, lines=1, scale=2, container=False)
+                export_file = gr.File(label="📄 Download handbook", visible=False, elem_id="download-file")
+                export_status = gr.Markdown("")
 
                 # Wiring
                 send_btn.click(
