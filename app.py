@@ -195,11 +195,14 @@ button:hover:not(:disabled) { opacity: 0.9 !important; transform: translateY(-1p
 .block { box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important; border-radius: 8px !important; }
 .file-preview, .upload-container, .file-upload, .dnd-container { background: #f9fafb !important; border: 1px dashed #9ca3af !important; }
 .file-preview *, .upload-container *, .dnd-container * { color: #374151 !important; }
+textarea, input[type="text"], input[type="search"] { background: #ffffff !important; color: #111827 !important; }
 textarea::placeholder, input::placeholder { color: #6b7280 !important; opacity: 1 !important; }
-label span, .label-wrap span { color: #374151 !important; }
-#msg-row .gap, #msg-row > div { align-items: flex-end !important; }
-#msg-row > div:last-child button { min-height: 66px !important; }
+.label-wrap { background: transparent !important; border: none !important; padding: 2px 0 !important; }
+.label-wrap span { color: #6b7280 !important; font-size: 0.78rem !important; letter-spacing: 0.02em !important; }
+#msg-row, #msg-row > *, #msg-row .gap { align-items: flex-end !important; }
+#msg-row > div:last-child button { min-height: 80px !important; }
 #msg-row textarea { font-size: 0.95rem !important; }
+#download-file .file-preview, #download-file .dnd-container { min-height: 52px !important; max-height: 52px !important; }
 """
 
 def build_ui():
@@ -270,8 +273,8 @@ def build_ui():
                     export_btn = gr.Button("💾 Export handbook (.md)", size="sm", variant="secondary")
 
                 with gr.Row():
-                    export_file = gr.File(label="Download", scale=1)
-                    export_status = gr.Textbox(label="Export status", interactive=False, lines=1, scale=2)
+                    export_file = gr.File(label="Download", scale=1, elem_id="download-file")
+                    export_status = gr.Textbox(label="", interactive=False, lines=1, scale=2, container=False)
 
                 # Wiring
                 send_btn.click(
