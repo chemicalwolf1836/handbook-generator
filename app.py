@@ -10,7 +10,6 @@ Environment variables (set in .env or HF Spaces secrets):
     SUPABASE_KEY     — Your Supabase anon/service key (optional)
 """
 import os
-import re
 import uuid
 import logging
 from pathlib import Path
@@ -42,6 +41,7 @@ db = Database()
 EXPORT_DIR = Path("./exports")
 EXPORT_DIR.mkdir(exist_ok=True)
 
+SESSION_ID = str(uuid.uuid4())  # per-process session; Gradio State handles per-user
 
 
 # ------------------------------------------------------------------ #
@@ -110,10 +110,9 @@ def chat_respond(message: str, history: list, session_id: str):
         history.append({"role": "assistant", "content": bot_reply})
         return history, ""
 
-    is_handbook = bool(re.search(
-        r'\b(create|generate|write|make|build|produce)\b.{0,50}\bhandbook\b',
-        message.lower()
-    ))
+    # Detect handbook request
+    handbook_kw = ["handbook", "generate handbook", "create handbook", "write handbook"]
+    is_handbook = any(kw in message.lower() for kw in handbook_kw)
 
     if is_handbook:
         history.append({"role": "user", "content": message})
@@ -156,8 +155,8 @@ def export_last_handbook(session_id: str):
     """Return path to the last generated handbook file."""
     path = EXPORT_DIR / f"handbook_{session_id[:8]}.md"
     if path.exists():
-        return gr.update(value=str(path), visible=True), f"✅ **{path.name}** is ready to download."
-    return gr.update(visible=False), "⚠️ No handbook generated yet in this session."
+        return str(path), f"✅ Ready to download: {path.name}"
+    return None, "⚠️ No handbook generated yet in this session."
 
 
 def clear_chat():
@@ -169,51 +168,22 @@ def clear_chat():
 # ------------------------------------------------------------------ #
 
 CUSTOM_CSS = """
-:root {
-  color-scheme: light !important;
-  --background-fill-primary: #f9fafb !important;
-  --background-fill-secondary: #f3f4f6 !important;
-  --block-background-fill: #ffffff !important;
-  --input-background-fill: #ffffff !important;
-  --body-background-fill: #f9fafb !important;
-  --chatbot-background: #f3f4f6 !important;
-  --border-color-primary: #e5e7eb !important;
-}
-.gradio-container { max-width: 1000px !important; font-family: "SF Pro Mono", ui-monospace, monospace !important; background: #f9fafb !important; }
-.block, .form, .wrap { background: #ffffff !important; }
-.chatbot, .chatbot .bubble-wrap { background: #f3f4f6 !important; }
+.gradio-container { max-width: 1000px !important; font-family: "SF Pro Mono", ui-monospace, monospace !important; }
 .status-box { font-family: "SF Pro Mono", ui-monospace, monospace; font-size: 0.85rem; }
 footer { display: none !important; }
 .prose h1, .prose h2, .prose h3, .prose p, .prose li,
-.prose blockquote, .prose strong, .prose em, .prose i { color: #111827 !important; }
+.prose blockquote, .prose strong, .prose em, .prose i {
+  color: #111827 !important;
+}
 .gradio-markdown, .gradio-markdown * { color: #111827 !important; }
 button[role="tab"] { color: #374151 !important; opacity: 1 !important; background: transparent !important; }
-button[role="tab"][aria-selected="true"] { color: #7c3aed !important; background: transparent !important; border-bottom: 2px solid #7c3aed !important; }
+button[role="tab"][aria-selected="true"] { color: #111827 !important; background: transparent !important; }
 button[role="tab"]:hover { color: #7c3aed !important; background: transparent !important; }
-button { transition: opacity 0.15s, transform 0.1s !important; }
-button:hover:not(:disabled) { opacity: 0.9 !important; transform: translateY(-1px) !important; }
-.block { box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important; border-radius: 8px !important; }
 .file-preview, .upload-container, .file-upload, .dnd-container { background: #f9fafb !important; border: 1px dashed #9ca3af !important; }
-.file-preview *, .upload-container *, .dnd-container * { color: #374151 !important; }
-textarea, input[type="text"], input[type="search"] { background: #ffffff !important; color: #111827 !important; }
-textarea::placeholder, input::placeholder { color: #6b7280 !important; opacity: 1 !important; }
-.label-wrap { background: transparent !important; border: none !important; padding: 2px 0 !important; }
-.label-wrap span { color: #6b7280 !important; font-size: 0.78rem !important; letter-spacing: 0.02em !important; }
-#msg-row, #msg-row > *, #msg-row .gap { align-items: flex-end !important; }
-#msg-row > div:last-child button { min-height: 80px !important; }
-#msg-row textarea { font-size: 0.95rem !important; }
-#download-file .file-preview, #download-file .dnd-container { min-height: 52px !important; max-height: 52px !important; }
 """
 
 def build_ui():
-    theme = gr.themes.Default(primary_hue="purple").set(
-        input_background_fill="#ffffff",
-        block_background_fill="#ffffff",
-        background_fill_primary="#f9fafb",
-        background_fill_secondary="#f3f4f6",
-        body_background_fill="#f9fafb",
-    )
-    with gr.Blocks(title="📖 AI Handbook Generator", css=CUSTOM_CSS, theme=theme) as demo:
+    with gr.Blocks(title="📖 AI Handbook Generator", css=CUSTOM_CSS, theme=gr.themes.Default(primary_hue="purple")) as demo:
 
         session_id = gr.State(str(uuid.uuid4()))
 
@@ -228,7 +198,10 @@ def build_ui():
 
             # ---- Tab 1: Upload ---- #
             with gr.TabItem("📄 Upload Documents"):
-                gr.Markdown("Upload PDFs to index them for Q&A and handbook generation.")
+                gr.Markdown(
+                    "Upload one or more PDF files. The system will extract text and build "
+                    "a knowledge graph using LightRAG."
+                )
                 file_input = gr.File(
                     label="Select PDF files",
                     file_types=[".pdf"],
@@ -243,35 +216,29 @@ def build_ui():
                 )
 
                 upload_btn.click(
-                    fn=lambda: gr.update(interactive=False, value="⏳ Indexing..."),
-                    outputs=upload_btn, queue=False,
-                ).then(
                     fn=upload_pdfs,
                     inputs=[file_input, upload_status],
                     outputs=[upload_status, upload_status],
-                ).then(
-                    fn=lambda: gr.update(interactive=True, value="📥 Index Documents"),
-                    outputs=upload_btn, queue=False,
                 )
 
             # ---- Tab 2: Chat ---- #
             with gr.TabItem("💬 Chat & Generate Handbook"):
-                gr.Markdown("Ask questions about your documents, or say **'Create a handbook on [topic]'** for a 20,000+ word handbook.")
+                gr.Markdown(
+                    "Ask questions about your documents, or say **'Create a handbook on [topic]'** "
+                    "to generate a 20,000+ word structured document."
+                )
 
                 chatbot = gr.Chatbot(
                     label="Conversation",
-                    height=550,
-                    show_copy_button=True,
-                    render_markdown=True,
+                    height=500,
                 )
 
-                with gr.Row(elem_id="msg-row"):
+                with gr.Row():
                     msg_box = gr.Textbox(
                         placeholder='Ask a question or say "Create a handbook on Retrieval-Augmented Generation"',
-                        label="",
+                        label="Your message",
                         scale=5,
                         lines=2,
-                        max_lines=6,
                     )
                     send_btn = gr.Button("Send ▶", variant="primary", scale=1, min_width=80)
 
@@ -279,31 +246,19 @@ def build_ui():
                     clear_btn = gr.Button("🗑️ Clear chat", size="sm")
                     export_btn = gr.Button("💾 Export handbook (.md)", size="sm", variant="secondary")
 
-                export_file = gr.File(label="📄 Download handbook", visible=False, elem_id="download-file")
-                export_status = gr.Markdown("")
+                export_file = gr.File(label="Download", visible=True)
+                export_status = gr.Textbox(label="", interactive=False, lines=1)
 
                 # Wiring
                 send_btn.click(
-                    fn=lambda: gr.update(interactive=False, value="Sending..."),
-                    outputs=send_btn, queue=False,
-                ).then(
                     fn=chat_respond,
                     inputs=[msg_box, chatbot, session_id],
                     outputs=[chatbot, msg_box],
-                ).then(
-                    fn=lambda: gr.update(interactive=True, value="Send ▶"),
-                    outputs=send_btn, queue=False,
                 )
                 msg_box.submit(
-                    fn=lambda: gr.update(interactive=False, value="Sending..."),
-                    outputs=send_btn, queue=False,
-                ).then(
                     fn=chat_respond,
                     inputs=[msg_box, chatbot, session_id],
                     outputs=[chatbot, msg_box],
-                ).then(
-                    fn=lambda: gr.update(interactive=True, value="Send ▶"),
-                    outputs=send_btn, queue=False,
                 )
                 clear_btn.click(fn=clear_chat, outputs=[chatbot, msg_box])
                 export_btn.click(
@@ -342,12 +297,6 @@ Supabase is optional — the app works without it using in-memory storage.
 
 The handbook can be downloaded as a Markdown file from the **💬 Chat** tab.
 """)
-
-        def load_indexed_docs():
-            docs = rag_engine.list_documents()
-            return f"📚 Already indexed: {', '.join(docs)}" if docs else ""
-
-        demo.load(fn=load_indexed_docs, outputs=upload_status)
 
     return demo
 
