@@ -93,20 +93,6 @@ class Database:
             logger.error(f"store_chunk error: {e}")
             return None
 
-    def similarity_search(self, embedding: list[float], top_k: int = 5) -> list[dict]:
-        """Return top-k chunks closest to the query embedding."""
-        if not self.available:
-            return []
-        try:
-            result = self.client.rpc(
-                "match_documents",
-                {"query_embedding": embedding, "match_count": top_k},
-            ).execute()
-            return result.data or []
-        except Exception as e:
-            logger.error(f"similarity_search error: {e}")
-            return []
-
     def list_documents(self) -> list[str]:
         """Return distinct filenames indexed in Supabase."""
         if not self.available:

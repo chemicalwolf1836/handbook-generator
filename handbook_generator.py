@@ -191,7 +191,7 @@ Write approximately {section.get('target_words', 1500)} words."""
             {"role": "system", "content": WRITE_SYSTEM},
             {"role": "user", "content": user_prompt},
         ],
-        max_tokens=3000,
+        max_tokens=4000,
         temperature=0.5,
     )
 
@@ -236,7 +236,7 @@ class HandbookGenerator:
         Usage: for chunk in gen.generate_handbook(request, rag_engine): print(chunk)
         """
         if not self.client:
-            yield "❌ XAI_API_KEY not configured."
+            yield "❌ GROQ_API_KEY not configured."
             return
 
         if not rag_engine.has_documents:
@@ -317,10 +317,8 @@ class HandbookGenerator:
         """Pull the handbook topic out of the user's chat message."""
         # Common patterns: "Create a handbook on X", "Generate a handbook about X"
         patterns = [
+            r"(?:create|generate|write|make|build|produce) (?:a )?handbook\s+(?:on|about|for|covering)?\s*(.+)",
             r"handbook (?:on|about|for|covering)\s+(.+)",
-            r"create (?:a )?handbook\s+(?:on|about|for)?\s*(.+)",
-            r"generate (?:a )?handbook\s+(?:on|about|for)?\s*(.+)",
-            r"write (?:a )?handbook\s+(?:on|about|for)?\s*(.+)",
         ]
         for pat in patterns:
             m = re.search(pat, request, re.IGNORECASE)

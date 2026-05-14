@@ -10,6 +10,7 @@ Environment variables (set in .env or HF Spaces secrets):
     SUPABASE_KEY     — Your Supabase anon/service key (optional)
 """
 import os
+import re
 import uuid
 import logging
 from pathlib import Path
@@ -41,7 +42,6 @@ db = Database()
 EXPORT_DIR = Path("./exports")
 EXPORT_DIR.mkdir(exist_ok=True)
 
-SESSION_ID = str(uuid.uuid4())  # per-process session; Gradio State handles per-user
 
 
 # ------------------------------------------------------------------ #
@@ -110,9 +110,10 @@ def chat_respond(message: str, history: list, session_id: str):
         history.append({"role": "assistant", "content": bot_reply})
         return history, ""
 
-    # Detect handbook request
-    handbook_kw = ["handbook", "generate handbook", "create handbook", "write handbook"]
-    is_handbook = any(kw in message.lower() for kw in handbook_kw)
+    is_handbook = bool(re.search(
+        r'\b(create|generate|write|make|build|produce)\b.{0,50}\bhandbook\b',
+        message.lower()
+    ))
 
     if is_handbook:
         history.append({"role": "user", "content": message})
@@ -168,18 +169,30 @@ def clear_chat():
 # ------------------------------------------------------------------ #
 
 CUSTOM_CSS = """
-.gradio-container { max-width: 1000px !important; font-family: "SF Pro Mono", ui-monospace, monospace !important; }
+:root {
+  color-scheme: light !important;
+  --background-fill-primary: #f9fafb !important;
+  --background-fill-secondary: #f3f4f6 !important;
+  --block-background-fill: #ffffff !important;
+  --input-background-fill: #ffffff !important;
+  --body-background-fill: #f9fafb !important;
+  --chatbot-background: #f3f4f6 !important;
+  --border-color-primary: #e5e7eb !important;
+}
+.gradio-container { max-width: 1000px !important; font-family: "SF Pro Mono", ui-monospace, monospace !important; background: #f9fafb !important; }
+.block, .form, .wrap { background: #ffffff !important; }
+.chatbot, .chatbot .bubble-wrap { background: #f3f4f6 !important; }
 .status-box { font-family: "SF Pro Mono", ui-monospace, monospace; font-size: 0.85rem; }
 footer { display: none !important; }
 .prose h1, .prose h2, .prose h3, .prose p, .prose li,
-.prose blockquote, .prose strong, .prose em, .prose i {
-  color: #111827 !important;
-}
+.prose blockquote, .prose strong, .prose em, .prose i { color: #111827 !important; }
 .gradio-markdown, .gradio-markdown * { color: #111827 !important; }
 button[role="tab"] { color: #374151 !important; opacity: 1 !important; background: transparent !important; }
 button[role="tab"][aria-selected="true"] { color: #111827 !important; background: transparent !important; }
 button[role="tab"]:hover { color: #7c3aed !important; background: transparent !important; }
 .file-preview, .upload-container, .file-upload, .dnd-container { background: #f9fafb !important; border: 1px dashed #9ca3af !important; }
+#msg-row .gap, #msg-row > div { align-items: flex-end !important; }
+#msg-row > div:last-child button { min-height: 66px !important; }
 """
 
 def build_ui():
@@ -216,9 +229,15 @@ def build_ui():
                 )
 
                 upload_btn.click(
+                    fn=lambda: gr.update(interactive=False, value="⏳ Indexing..."),
+                    outputs=upload_btn, queue=False,
+                ).then(
                     fn=upload_pdfs,
                     inputs=[file_input, upload_status],
                     outputs=[upload_status, upload_status],
+                ).then(
+                    fn=lambda: gr.update(interactive=True, value="📥 Index Documents"),
+                    outputs=upload_btn, queue=False,
                 )
 
             # ---- Tab 2: Chat ---- #
@@ -233,7 +252,7 @@ def build_ui():
                     height=500,
                 )
 
-                with gr.Row():
+                with gr.Row(elem_id="msg-row"):
                     msg_box = gr.Textbox(
                         placeholder='Ask a question or say "Create a handbook on Retrieval-Augmented Generation"',
                         label="Your message",
@@ -246,19 +265,32 @@ def build_ui():
                     clear_btn = gr.Button("🗑️ Clear chat", size="sm")
                     export_btn = gr.Button("💾 Export handbook (.md)", size="sm", variant="secondary")
 
-                export_file = gr.File(label="Download", visible=True)
-                export_status = gr.Textbox(label="", interactive=False, lines=1)
+                with gr.Row():
+                    export_file = gr.File(label="Download", scale=1)
+                    export_status = gr.Textbox(label="Export status", interactive=False, lines=1, scale=2)
 
                 # Wiring
                 send_btn.click(
+                    fn=lambda: gr.update(interactive=False, value="Sending..."),
+                    outputs=send_btn, queue=False,
+                ).then(
                     fn=chat_respond,
                     inputs=[msg_box, chatbot, session_id],
                     outputs=[chatbot, msg_box],
+                ).then(
+                    fn=lambda: gr.update(interactive=True, value="Send ▶"),
+                    outputs=send_btn, queue=False,
                 )
                 msg_box.submit(
+                    fn=lambda: gr.update(interactive=False, value="Sending..."),
+                    outputs=send_btn, queue=False,
+                ).then(
                     fn=chat_respond,
                     inputs=[msg_box, chatbot, session_id],
                     outputs=[chatbot, msg_box],
+                ).then(
+                    fn=lambda: gr.update(interactive=True, value="Send ▶"),
+                    outputs=send_btn, queue=False,
                 )
                 clear_btn.click(fn=clear_chat, outputs=[chatbot, msg_box])
                 export_btn.click(
@@ -297,6 +329,12 @@ Supabase is optional — the app works without it using in-memory storage.
 
 The handbook can be downloaded as a Markdown file from the **💬 Chat** tab.
 """)
+
+        def load_indexed_docs():
+            docs = rag_engine.list_documents()
+            return f"📚 Already indexed: {', '.join(docs)}" if docs else ""
+
+        demo.load(fn=load_indexed_docs, outputs=upload_status)
 
     return demo
 

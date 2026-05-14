@@ -28,11 +28,8 @@ LLM_MODEL  = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile") if _GROQ_KEY els
 # ------------------------------------------------------------------ #
 
 def _load_embed_model():
-    import os as _os
     from sentence_transformers import SentenceTransformer
     logger.info("Loading local embedding model...")
-    _os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
-    _os.environ.setdefault("HF_HUB_OFFLINE", "1")
     m = SentenceTransformer("all-MiniLM-L6-v2")
     logger.info("Embedding model ready.")
     return m
@@ -144,13 +141,13 @@ class RAGEngine:
         idxs  = _cosine_top_k(self._embeddings, q_emb, top_k)
         return "\n\n---\n\n".join(self._chunks[i] for i in idxs)
 
-    def query(self, question: str, mode: str = "hybrid", only_need_context: bool = False) -> str:
+    def query(self, question: str, only_need_context: bool = False) -> str:
         if not self._indexed_docs:
             return "⚠️ No documents indexed. Please upload a PDF first."
         if not self._embed_model:
             return "❌ Embedding model not available."
 
-        context = self._retrieve_context(question, top_k=3)
+        context = self._retrieve_context(question, top_k=5)
         if not context:
             return "No relevant information found."
 
@@ -175,7 +172,7 @@ class RAGEngine:
             yield "❌ Embedding model not available."
             return
 
-        context = self._retrieve_context(question, top_k=3)
+        context = self._retrieve_context(question, top_k=5)
         if not context:
             yield "No relevant information found."
             return
