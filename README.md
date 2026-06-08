@@ -10,6 +10,9 @@ pinned: false
 python_version: "3.11"
 ---
 
+> ▶️ **Live version (reimplemented, in-browser):**
+> https://batmagnai-ganbaatar-portfolio.vercel.app/handbook-generator-app.html
+
 # 📖 AI Handbook Generator
 
 > Upload PDFs → Ask questions → Generate 20,000-word handbooks through conversation.
