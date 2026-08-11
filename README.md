@@ -39,7 +39,7 @@ Built for the LunarTech AI Engineering Assignment.
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  📄 PDF Upload → 🧠 LightRAG → 💬 Chat UI → 📖 Handbook    │
-│    (pdfplumber)   (Supabase)   (Gradio)   (Grok 4.1)       │
+│    (pdfplumber)   (Supabase)   (Gradio)   (Groq)           │
 │                               (20k words via LongWriter)    │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -49,7 +49,7 @@ Built for the LunarTech AI Engineering Assignment.
 | Component | Technology | Purpose |
 |---|---|---|
 | Frontend | Gradio | Chat interface with file upload |
-| LLM | Grok 4.1 (via xAI API) | Long-context generation |
+| LLM | Llama 3.3 70B (via Groq) | Long-context generation |
 | RAG | LightRAG | Knowledge graph from PDFs |
 | Database | Supabase (pgvector) | Vector storage & chat history |
 | PDF Parser | pdfplumber + pypdf | Text extraction |
@@ -61,7 +61,7 @@ Built for the LunarTech AI Engineering Assignment.
 Generating 20,000+ words in a single LLM call exceeds typical output limits.
 The **AgentWrite** approach (from the LongWriter research paper) solves this:
 
-1. **Plan** — Grok 4.1 creates a detailed table of contents (12-16 sections, each with a word-count target totalling 20,000+)
+1. **Plan** - Llama 3.3 70B creates a detailed table of contents (12-16 sections, each with a word-count target totalling 20,000+)
 2. **Write** — Each section is generated in a separate API call, using:
    - LightRAG context relevant to that section's topics
    - A rolling summary of previously written sections
@@ -95,7 +95,7 @@ cp .env.example .env
 ```
 
 Required keys:
-- **XAI_API_KEY** — Get from [console.x.ai](https://console.x.ai/)
+- **GROQ_API_KEY** - Get from [console.groq.com](https://console.groq.com/)
 - **SUPABASE_URL** + **SUPABASE_KEY** — From your [Supabase](https://supabase.com) project dashboard → Settings → API
 
 ### 4. Set up Supabase database
